@@ -116,7 +116,7 @@ AddExpireTime逻辑是为兼容长类型场景设计，在短类型场景中不�
 ### 实例启用命令
 ./redisgo_task task --config config/redisgo_task.toml
 ### 产品设计思路借鉴
-Consul分布式中Luck()/Unluck()实现原理<br/>
-Redis大型网站高并发场景下分布式锁实现原理
+[Consul分布式中Luck()/Unluck()实现原理](https://blog.csdn.net/qq_34417408/article/details/116331540)<br/>
+[Redis大型网站高并发场景下分布式锁实现原理](https://blog.csdn.net/qq_34417408/article/details/116799087)
 
 感兴趣的各位可以打星交流！！！
