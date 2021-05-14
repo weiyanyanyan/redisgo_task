@@ -1,3 +1,24 @@
+Table of Contents
+=================
+
+* [Redisgo\_task](#redisgo_task)
+  * [长短类型分布式场景介绍](#长短类型分布式场景介绍)
+  * [Redisgo\_task实现原理](#redisgo_task实现原理)
+    * [SetNx(value\+expire)原子性](#setnxvalueexpire原子性)
+    * [AddLockExpire 粒度控制](#addlockexpire-粒度控制)
+    * [子协程Done()时间点](#子协程done时间点)
+    * [子协程中的Ticker](#子协程中的ticker)
+  * [Redisgo\_task唯一外部依赖](#redisgo_task唯一外部依赖)
+  * [Redisgo\_task Lock结构](#redisgo_task-lock结构)
+  * [Redisgo\_task架构健壮性设计](#redisgo_task架构健壮性设计)
+    * [Redisgo\_task可扩展性](#redisgo_task可扩展性)
+    * [Redisgo\_task灵活性](#redisgo_task灵活性)
+    * [Redisgo\_task可读性](#redisgo_task可读性)
+  * [Redisgo\_task性能指标](#redisgo_task性能指标)
+  * [Q&amp;A](#qa)
+  * [附：](#附)
+    * [用例使用过程](#用例使用过程)
+    * [产品设计思路借鉴](#产品设计思路借鉴)
 
 # Redisgo_task
 一款基于Goland语言实现的Redis分布式锁产品，支持百万级实例/协程并发，适用于各种常见的分布式场景。
