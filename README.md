@@ -56,31 +56,31 @@ lock.Conn.Do("SET", lock.Key, lock.Token, "EX", int(lock.TimeOut), "NX")
 ```
 dir:config/redisgo_task.toml
 [redis]
-redis_host = ["IP:HOST"]
-key = "Redisgo_Task_Lock_key"
-token = "2343543t5e56y6u7645645f"
-redis_time_out = 5
-ttl = 2
-try_time = "1s"
-cron = "1s"
+#expire-锁默认expire「单位s」
+#retries-重试获取锁间隔
+#cron 持续增加expire频次
+host = "IP:HOST"
+key = "FlowAnalysis_Collect_Consul_Lock_key"
+# value = "8292884c-a7a7-0050-9778-e47362a8f578"
+# expire = "500ms"
+# retries = "10ms"
+# cron = "10ms"
 ```
 ## Redisgo_task Lock结构
 ```
 type RedisLock struct {
-Host string
-TimeOut int
-Key string
-Token string
-Conn redis.Conn
-Cron time.Duration
-Ttl int64
-TryTime time.Duration
-DoneExpireChan chan struct{}
+	Host           string
+	Expire         time.Duration
+	Key            string
+	Value          string
+	Conn           redis.Conn
+	Cron           time.Duration
+	Retries        time.Duration
+	DoneExpireChan chan struct{}
 }
-#time_out-锁默认expire「单位s」
-#ttl-锁当前持续增加expire最大剩余时间阈值粒度「单位s」ttl+cron<=time_out
-#try_time重试获取锁间隔粒度
-#cron 持续增加expire频次粒度
+#expire-锁默认expire「单位s」
+#retries-重试获取锁间隔
+#cron 持续增加expire频次
 ```
 ## Redisgo_task架构健壮性设计
 考量到产品架构在实用中的健壮性，针对产品的整体架构设计，对实现过程做出了一下方向的调整：
@@ -93,7 +93,7 @@ DoneExpireChan chan struct{}
 
 ## Redisgo_task性能指标
 在数据量、实例数量两个维度验证：在高并发场景下每个实例获得锁的成功率一致；<br/>
-实验分为三组，分别为样本一、样本二、样本三如下图；<br/>
+实验分为三组，分别为样本一、样本二、样本三如下图:<br/>
 ![image](https://img-blog.csdnimg.cn/20210514173657877.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM0NDE3NDA4,size_16,color_FFFFFF,t_70)
 > 样本一中数据规模每组在10+，较少，两组成功率相差4.2%，无法体现在双实例下，每个实例成功率一致的目标；<br/>
 > 样本二中数据规模每组在3w+，尚可，三组成功率均差在0.2%，已经十分接近目标；<br/>
@@ -113,7 +113,7 @@ Of crouse，ctx context/Done方案也可行。<br/>
 AddExpireTime逻辑是为兼容长类型场景设计，在短类型场景中不影响业务逻辑正常进行。<br/>
 
 ## 附：
-### 用例使用过程
+### 实例启用命令
 ./redisgo_task task --config config/redisgo_task.toml
 ### 产品设计思路借鉴
 Consul分布式中Luck()/Unluck()实现原理<br/>
