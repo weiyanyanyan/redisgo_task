@@ -5,7 +5,7 @@ Table of Contents
   * [长短类型分布式场景介绍](#长短类型分布式场景介绍)
   * [Redisgo\_task实现原理](#redisgo_task实现原理)
     * [SetNx(value\+expire)原子性](#setnxvalueexpire原子性)
-    * [AddLockExpire 粒度控制](#addlockexpire-粒度控制)
+    * [ReExpire 粒度控制](#ReExpire-粒度控制)
     * [子协程Done()时间点](#子协程done时间点)
     * [子协程中的Ticker](#子协程中的ticker)
   * [Redisgo\_task唯一外部依赖](#redisgo_task唯一外部依赖)
@@ -45,7 +45,7 @@ Table of Contents
 
 ### SetNx(value+expire)原子性
 lock.Conn.Do("SET", lock.Key, lock.Token, "EX", int(lock.TimeOut), "NX")
-### AddLockExpire 粒度控制
+### ReExpire 粒度控制
 当持续增加任务中所属Lock中的Expire时，设计阈值是为了保证持有的Lock Key Expire始终在可控范围内的同时，更好的便于Expire粒度控制
 ### 子协程Done()时间点
 由doneCh <-chan struct{} Channel阻塞控制，在Unlock()中会出发Close()信号
