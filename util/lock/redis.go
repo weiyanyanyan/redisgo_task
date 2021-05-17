@@ -23,8 +23,8 @@ type RedisLock struct {
 	Value          string
 	Conn           redis.Conn
 	Cron           time.Duration
-	Retries        time.Duration
 	DoneExpireChan chan struct{}
+	Retry          *Retry
 }
 
 func NewRedisLock(cfg *config.RedisInfo) (Locker, error) {
@@ -38,14 +38,15 @@ func NewRedisLock(cfg *config.RedisInfo) (Locker, error) {
 		fmt.Printf("RedisLock redis dial is fail :%v \n", err)
 		return nil, fmt.Errorf("RedisLock redis dial is fail ")
 	}
+	retry := NewRetry(0, cfg.RetriesCount, cfg.MonitorTryAll)
 	return &RedisLock{
-		Host:    cfg.Host,
-		Key:     cfg.Key,
-		Value:   cfg.Value,
-		Expire:  cfg.Expire.Duration,
-		Retries: cfg.Retries.Duration,
-		Cron:    cfg.Cron.Duration,
-		Conn:    conn,
+		Host:   cfg.Host,
+		Key:    cfg.Key,
+		Value:  cfg.Value,
+		Expire: cfg.Expire.Duration,
+		Cron:  cfg.Cron.Duration,
+		Conn:  conn,
+		Retry: retry,
 	}, nil
 }
 
@@ -63,9 +64,6 @@ func Valid(cfg *config.RedisInfo) (*config.RedisInfo, bool) {
 	if cfg.Cron.Duration == 0 {
 		cfg.Cron.Duration = CRON_TIME
 	}
-	if cfg.Retries.Duration == 0 {
-		cfg.Retries.Duration = RETRIES_TIME
-	}
 	cfg.Value = cfg.Value + "-" + strconv.FormatInt(time.Now().Unix(), 10)
 	return cfg, true
 }
@@ -77,8 +75,14 @@ Wait:
 	if err == redis.ErrNil {
 		// The lock was not successful, it already exists.
 		fmt.Printf("RedisLock redis Lock was not successful, it already exists and now trying\n")
-		time.Sleep(lock.Retries)
-		goto Wait
+		sleepTime := lock.Retry.RetriesTime()
+		if lock.Retry.RetriesTime() >= 0 {
+			fmt.Printf("RedisLock redis Lock was trying time is:%v", sleepTime)
+			time.Sleep(time.Duration(sleepTime) * time.Millisecond)
+		} else {
+			fmt.Printf("RedisLock redis Lock was not successful,but try index is used over")
+			return
+		}
 	}
 	if err != nil {
 		fmt.Printf("RedisLock redis Lock was fail  :%v \n", err)
