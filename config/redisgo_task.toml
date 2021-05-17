@@ -1,14 +1,14 @@
 title = "redisgo_task"
 
 [redis]
-#用于Collect服务分布式锁
-#time_out-锁默认expire「单位s」
-#ttl-锁当前持续增加expire最大剩余时间阈值「单位s」ttl+cron<=time_out
-#try_time重试获取锁间隔
+#expire-锁默认expire「单位s」
 #cron 持续增加expire频次
-host = "10.13.40.145:26380"
-key = "FlowAnalysis_Collect_Consul_Lock_key"
+#retries_count 持续获取锁重试次数，重试间隔遵循退避算法，于次数耦合
+#monitor_try_all 标识是否永久重试抢锁，true/false
+host = "IP:HOST"
+key = "Redisgo_Task_Lock_key"
+monitor_try_all = true
+#retries_count = 4.0
 # value = "8292884c-a7a7-0050-9778-e47362a8f578"
-# expire = "500ms"
-# retries = "10ms"
-# cron = "10ms"
+# expire = "5s"
+# cron = "1s"
