@@ -27,12 +27,13 @@ type Config struct {
 }
 
 type RedisInfo struct {
-	Host    string   `toml:"host"`
-	Key     string   `toml:"key"`
-	Value   string   `toml:"value"`
-	Expire  duration `toml:"expire"`
-	Retries duration `toml:"retries"`
-	Cron    duration `toml:"cron"`
+	Host          string   `toml:"host"`
+	Key           string   `toml:"key"`
+	Value         string   `toml:"value"`
+	Expire        duration `toml:"expire"`
+	RetriesCount  float64 	`toml:"retries_count"`
+	MonitorTryAll bool     `toml:"monitor_try_all"`
+	Cron          duration `toml:"cron"`
 }
 
 func LoadConfig(fname string) *Config {
