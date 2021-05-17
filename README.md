@@ -8,6 +8,7 @@ Table of Contents
     * [ReExpire 粒度控制](#ReExpire-粒度控制)
     * [子协程Done()时间点](#子协程done时间点)
     * [子协程中的Ticker](#子协程中的ticker)
+    * [Retry Lock 二进制指数退避机制](#Retry-Lock-二进制指数退避机制)
   * [Redisgo\_task唯一外部依赖](#redisgo_task唯一外部依赖)
   * [Redisgo\_task Lock结构](#redisgo_task-lock结构)
   * [Redisgo\_task架构健壮性设计](#redisgo_task架构健壮性设计)
