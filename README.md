@@ -51,20 +51,28 @@ lock.Conn.Do("SET", lock.Key, lock.Token, "EX", int(lock.TimeOut), "NX")
 由doneCh <-chan struct{} Channel阻塞控制，在Unlock()中会出发Close()信号
 ### 子协程中的Ticker
 通过Ticker，持续进行Expire Add操作，可有效避免阻塞及单次Expire Add失败的场景，且有效验证当前锁状态，及时Stop
+### Retry Lock 二进制指数退避机制
+重试机制<br/>
+1、瞬时重试；2、等间隔重试；3、随机重试；4、队列重试<br/><br/>
+经过考量，网络抖动下，瞬时、等间隔，可能导致重试成功率低，且DDOS现象；而队列重试在当前产品场景不适用；参考TCP重试机制，故设计采用**二进制指数退避算法作为重试机制**；<br/><br/>
+采用TCP超时重试等同的二进制指数退避算法，解决在持续重试获取锁场景下，对服务造成的瞬时负载高及网络抖动导致重试成功率底下的问题。
+
 
 ## Redisgo_task唯一外部依赖
 ```
 dir:config/redisgo_task.toml
 [redis]
 #expire-锁默认expire「单位s」
-#retries-重试获取锁间隔
 #cron 持续增加expire频次
+#retries_count 持续获取锁重试次数，重试间隔遵循退避算法，于次数耦合
+#monitor_try_all 标识是否永久重试抢锁，true/false
 host = "IP:HOST"
-key = "FlowAnalysis_Collect_Consul_Lock_key"
+key = "Redisgo_Task_Lock_key"
+monitor_try_all = true
+#retries_count = 4.0
 # value = "8292884c-a7a7-0050-9778-e47362a8f578"
-# expire = "500ms"
-# retries = "10ms"
-# cron = "10ms"
+# expire = "5s"
+# cron = "1s"
 ```
 ## Redisgo_task Lock结构
 ```
@@ -75,12 +83,9 @@ type RedisLock struct {
 	Value          string
 	Conn           redis.Conn
 	Cron           time.Duration
-	Retries        time.Duration
 	DoneExpireChan chan struct{}
+	Retry          *Retry
 }
-#expire-锁默认expire「单位s」
-#retries-重试获取锁间隔
-#cron 持续增加expire频次
 ```
 ## Redisgo_task架构健壮性设计
 考量到产品架构在实用中的健壮性，针对产品的整体架构设计，对实现过程做出了一下方向的调整：
